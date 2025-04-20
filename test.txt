@@ -1,0 +1,96 @@
+function love.load()
+    love.graphics.setBackgroundColor(0.2, 0.2, 0.3)
+    love.window.setMode(800, 600, {resizable = false, vsync = true})
+
+    width, height = love.graphics.getDimensions()
+
+    player = {}
+    player.x = 0
+    player.y = 0
+    player.vx = 0
+    player.vy = 0
+    player.speed = 200
+    player.width = 50
+    player.height = 50
+    player.jumpHeight = 100000
+    player.gravity = 500
+    player.isJumping = false
+    player.isFalling = false
+    player.isGrounded = false
+    player.isMoving = false
+    player.left = player.x
+    player.right = player.x + player.width
+    player.top = player.y
+    player.bottom = player.y + player.height
+    player.jumpTime = 0
+    player.maxJumpTime = 0.5
+
+    ground = {}
+    ground.x = 0
+    ground.y = 500
+    ground.width = width
+    ground.height = 50
+    ground.left = ground.x
+    ground.right = ground.x + ground.width
+    ground.top = ground.y
+    ground.bottom = ground.y + ground.height
+end
+function love.update(dt)
+    playerMovement(dt)
+    playerCollision()
+end
+function love.draw()
+    love.graphics.rectangle("fill", player.x, player.y, player.width, player.height)
+    love.graphics.rectangle("fill", ground.x, ground.y, ground.width, ground.height) -- ground
+    
+    love.graphics.print(tostring(player.isGrounded) .. " " .. tostring(player.isJumping) .. " " .. tostring(player.isFalling), 10, 10)
+end
+
+function playerMovement(dt)
+        player.left = player.x
+        player.right = player.x + player.width
+        player.top = player.y
+        player.bottom = player.y + player.height
+    
+        if love.keyboard.isDown("a") then
+            player.vx = -player.speed
+            player.isMoving = true
+        elseif love.keyboard.isDown("d") then
+            player.vx = player.speed
+            player.isMoving = true
+        else
+            player.vx = 0
+            player.isMoving = false
+        end
+
+        if love.keyboard.isDown("space") and player.isGrounded then
+            player.vy = -player.jumpHeight * dt
+            player.isJumping = true
+            player.isGrounded = false
+        end
+
+        if not player.isGrounded then
+            player.vy = player.vy + player.gravity * dt
+            if player.vy > 0 then
+            player.isFalling = true
+            player.isJumping = false
+            end
+        else
+            player.vy = 0
+            player.isFalling = false
+        end
+
+        player.y = player.y + player.vy * dt
+        player.x = player.x + player.vx * dt
+end
+
+function playerCollision()
+    if player.right > ground.left and player.left < ground.right and player.bottom > ground.top and player.top < ground.bottom then
+        player.isGrounded = true
+        player.isJumping = false
+        player.isFalling = false
+    else
+        player.isGrounded = false
+    end
+
+end
